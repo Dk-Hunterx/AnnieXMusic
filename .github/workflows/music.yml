@@ -1,4 +1,4 @@
-name: AnnieXMusic
+name: AnnieX Music Bot
 
 on:
   workflow_dispatch:
@@ -6,81 +6,63 @@ on:
     branches:
       - Master
 
-permissions:
-  contents: read
-
-concurrency:
-  group: anniexmusic-production
-  cancel-in-progress: true
-
 jobs:
-  run-music-bot:
-    name: Run AnnieXMusic
+  run-bot:
     runs-on: ubuntu-latest
-    environment:
-      name: Production
     timeout-minutes: 350
 
-    env:
-      API_ID: ${{ secrets.API_ID }}
-      API_HASH: ${{ secrets.API_HASH }}
-      OWNER_ID: ${{ secrets.OWNER_ID }}
-      LOGGER_ID: ${{ secrets.LOGGER_ID }}
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      STRING_SESSION: ${{ secrets.STRING_SESSION }}
-      STRING_SESSION2: ${{ secrets.STRING_SESSION2 }}
-      STRING_SESSION3: ${{ secrets.STRING_SESSION3 }}
-      STRING_SESSION4: ${{ secrets.STRING_SESSION4 }}
-      STRING_SESSION5: ${{ secrets.STRING_SESSION5 }}
-      MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
-      COOKIE_URL: ${{ secrets.COOKIE_URL }}
-      DEEP_API: ${{ secrets.DEEP_API }}
-      API_URL: ${{ secrets.API_URL }}
-      VIDEO_API_URL: ${{ secrets.VIDEO_API_URL }}
-      API_KEY: ${{ secrets.API_KEY }}
-
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements.txt
+          python-version: "3.11"
 
-      - name: Install system dependencies
+      - name: Install FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg curl
-          ffmpeg -version
+          sudo apt-get install -y ffmpeg
 
       - name: Install Deno
         run: |
           curl -fsSL https://deno.land/install.sh | sh
           echo "$HOME/.deno/bin" >> "$GITHUB_PATH"
-          "$HOME/.deno/bin/deno" --version
 
-      - name: Validate required secrets
-        shell: bash
-        run: |
-          missing=()
-          for name in API_ID API_HASH OWNER_ID LOGGER_ID BOT_TOKEN STRING_SESSION MONGO_DB_URI; do
-            if [[ -z "${!name}" ]]; then
-              missing+=("$name")
-            fi
-          done
-
-          if (( ${#missing[@]} > 0 )); then
-            echo "::error::Missing Production environment secrets: ${missing[*]}"
-            exit 1
-          fi
-
-      - name: Install Python requirements
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Start AnnieXMusic
-        run: python -m AnnieXMedia
+      - name: Start AnnieX Music Bot
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          OWNER_ID: ${{ secrets.OWNER_ID }}
+          LOGGER_ID: ${{ secrets.LOGGER_ID }}
+          MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
+          COOKIE_URL: ${{ secrets.COOKIE_URL }}
+
+          STRING_SESSION: ${{ secrets.STRING_SESSION }}
+          STRING_SESSION2: ${{ secrets.STRING_SESSION2 }}
+          STRING_SESSION3: ${{ secrets.STRING_SESSION3 }}
+          STRING_SESSION4: ${{ secrets.STRING_SESSION4 }}
+          STRING_SESSION5: ${{ secrets.STRING_SESSION5 }}
+
+          API_URL: ${{ secrets.API_URL }}
+          VIDEO_API_URL: ${{ secrets.VIDEO_API_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+          DEEP_API: ${{ secrets.DEEP_API }}
+
+          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
+          BOT_NAME: ${{ secrets.BOT_NAME }}
+          OWNER_USERNAME: ${{ secrets.OWNER_USERNAME }}
+          ASSUSERNAME: ${{ secrets.ASSUSERNAME }}
+
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+
+        run: |
+          python3 -m AnnieXMedia
